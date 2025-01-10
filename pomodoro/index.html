@@ -1,0 +1,354 @@
+<html><head><base href="/" />
+<meta charset="UTF-8">
+<title>Simple Pomodoro Timer</title>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f5e6d3;
+}
+
+.container {
+    text-align: center;
+    background: #2c3e50;
+    padding: 2rem;
+    border-radius: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 15px solid #34495e;
+    max-width: 800px;
+    width: 95%;
+    color: white;
+}
+
+h1 {
+    color: #ecf0f1;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.timer-circle {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 20px auto;
+    background: #34495e;
+    border-radius: 40px;
+    padding: 30px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+}
+
+.timer-circle svg {
+    transform: rotate(-90deg);
+    width: 500px;
+    height: 500px;
+}
+
+.timer-circle circle {
+    fill: none;
+    stroke-width: 10;
+}
+
+.timer-background {
+    stroke: #446280;
+}
+
+.timer-progress {
+    stroke: #e74c3c;
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.5));
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6rem;
+    color: #ecf0f1;
+    font-family: 'Digital-7', monospace;
+    text-shadow: 0 0 15px rgba(236, 240, 241, 0.3);
+}
+
+.mode {
+    margin: 1rem 0;
+    font-size: 1.5rem;
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+button {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+#startButton {
+    background-color: #e74c3c;
+    color: white;
+}
+
+#startButton:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+#resetButton {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+#resetButton:hover {
+    background-color: #95a5a6;
+    transform: translateY(-2px);
+}
+
+.notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2rem;
+    background-color: rgba(44, 62, 80, 0.95);
+    color: white;
+    border-radius: 15px;
+    display: none;
+    animation: fadeIn 0.5s ease-out;
+    font-size: 1.5rem;
+    border: 3px solid #e74c3c;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.settings {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: #34495e;
+    border-radius: 12px;
+}
+
+.settings-toggle {
+    background: #e74c3c;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.settings-content {
+    display: none;
+    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: #2c3e50;
+    border-radius: 10px;
+}
+
+.time-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-input input {
+    width: 60px;
+    padding: 0.3rem;
+    border-radius: 5px;
+    border: none;
+}
+
+.apply-button {
+    background: #e74c3c;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.settings-content.show {
+    display: flex;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>포모도로 타이머</h1>
+        <div class="settings">
+            <button class="settings-toggle" id="settingsToggle">⚙️ 시간 설정</button>
+            <div class="settings-content" id="settingsContent">
+                <div class="time-input">
+                    <label>작업 시간 (분):</label>
+                    <input type="number" id="workTimeInput" min="1" max="60" value="25">
+                </div>
+                <div class="time-input">
+                    <label>휴식 시간 (분):</label>
+                    <input type="number" id="breakTimeInput" min="1" max="60" value="5">
+                </div>
+                <button class="apply-button" id="applySettings">적용</button>
+            </div>
+        </div>
+        <div class="mode">작업 모드</div>
+        <div class="timer-circle">
+            <svg width="500" height="500">
+                <circle class="timer-background" cx="250" cy="250" r="230"></circle>
+                <circle class="timer-progress" cx="250" cy="250" r="230"></circle>
+            </svg>
+            <div class="timer-text">25:00</div>
+        </div>
+        <div class="buttons">
+            <button id="startButton">시작</button>
+            <button id="resetButton">리셋</button>
+        </div>
+    </div>
+    <div class="notification" id="notification">
+        시간이 종료되었습니다!
+    </div>
+
+<script>
+class PomodoroTimer {
+    constructor() {
+        this.workTime = 25 * 60;
+        this.breakTime = 5 * 60;
+        this.currentTime = this.workTime;
+        this.isWorkMode = true;
+        this.isRunning = false;
+        this.timer = null;
+
+        // DOM elements
+        this.timerText = document.querySelector('.timer-text');
+        this.timerProgress = document.querySelector('.timer-progress');
+        this.modeDisplay = document.querySelector('.mode');
+        this.startButton = document.getElementById('startButton');
+        this.resetButton = document.getElementById('resetButton');
+        this.notification = document.getElementById('notification');
+        this.settingsToggle = document.getElementById('settingsToggle');
+        this.settingsContent = document.getElementById('settingsContent');
+        this.applySettings = document.getElementById('applySettings');
+        this.workTimeInput = document.getElementById('workTimeInput');
+        this.breakTimeInput = document.getElementById('breakTimeInput');
+
+        // Set up circular progress bar
+        const circumference = 2 * Math.PI * 230; // Updated radius to match new SVG
+        this.timerProgress.style.strokeDasharray = circumference;
+        this.timerProgress.style.strokeDashoffset = 0;
+        this.circumference = circumference;
+
+        // Initialize button event listeners
+        this.startButton.addEventListener('click', () => this.toggleTimer());
+        this.resetButton.addEventListener('click', () => this.resetTimer());
+
+        this.initializeSettings();
+        this.updateDisplay();
+    }
+
+    initializeSettings() {
+        this.settingsToggle.addEventListener('click', () => {
+            this.settingsContent.style.display = 
+                this.settingsContent.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        this.applySettings.addEventListener('click', () => {
+            const newWorkTime = parseInt(this.workTimeInput.value);
+            const newBreakTime = parseInt(this.breakTimeInput.value);
+
+            if (newWorkTime > 0 && newBreakTime > 0) {
+                this.workTime = newWorkTime * 60;
+                this.breakTime = newBreakTime * 60;
+                this.resetTimer();
+                this.settingsContent.style.display = 'none';
+            } else {
+                alert('올바른 시간을 입력해주세요.');
+            }
+        });
+    }
+
+    toggleTimer() {
+        if (this.isRunning) {
+            this.pauseTimer();
+            this.startButton.textContent = '시작';
+        } else {
+            this.startTimer();
+            this.startButton.textContent = '일시정지';
+        }
+    }
+
+    startTimer() {
+        this.isRunning = true;
+        this.timer = setInterval(() => {
+            this.currentTime--;
+            this.updateDisplay();
+
+            if (this.currentTime <= 0) {
+                this.handleTimerComplete();
+            }
+        }, 1000);
+    }
+
+    pauseTimer() {
+        this.isRunning = false;
+        clearInterval(this.timer);
+    }
+
+    resetTimer() {
+        this.pauseTimer();
+        this.currentTime = this.workTime;
+        this.isWorkMode = true;
+        this.startButton.textContent = '시작';
+        this.updateDisplay();
+        this.hideNotification();
+    }
+
+    handleTimerComplete() {
+        this.pauseTimer();
+        this.showNotification();
+        this.isWorkMode = !this.isWorkMode;
+        this.currentTime = this.isWorkMode ? this.workTime : this.breakTime;
+        this.updateDisplay();
+        this.startButton.textContent = '시작';
+    }
+
+    updateDisplay() {
+        const minutes = Math.floor(this.currentTime / 60);
+        const seconds = this.currentTime % 60;
+        this.timerText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        this.modeDisplay.textContent = this.isWorkMode ? '작업 모드' : '휴식 모드';
+
+        const totalTime = this.isWorkMode ? this.workTime : this.breakTime;
+        const progress = this.currentTime / totalTime;
+        const offset = this.circumference * (1 - progress);
+        this.timerProgress.style.strokeDashoffset = offset;
+    }
+
+    showNotification() {
+        const message = this.isWorkMode ? '휴식 시간입니다!' : '작업을 시작하세요!';
+        this.notification.textContent = message;
+        this.notification.style.display = 'block';
+        setTimeout(() => this.hideNotification(), 3000);
+    }
+
+    hideNotification() {
+        this.notification.style.display = 'none';
+    }
+}
+
+// Initialize the timer
+const pomodoro = new PomodoroTimer();
+</script>
+</body>
+</html>
